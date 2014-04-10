@@ -31,17 +31,25 @@ class BWGViewThumbnails {
     if (!isset($params['image_title'])) {
       $params['image_title'] = 'none';
     }
+    if (!isset($params['popup_fullscreen'])) {
+      $params['popup_fullscreen'] = 0;
+    }
     $from = (isset($params['from']) ? esc_html($params['from']) : 0);
+    $sort_direction = ' ASC ';
     if ($from) {
       $options_row = $this->model->get_options_row_data();
       $params['gallery_id'] = $params['id'];
       $params['images_per_page'] = $params['count'];
       $params['sort_by'] = (($params['show'] == 'random') ? 'RAND()' : 'order');
+      if ($params['show'] == 'last') {
+        $sort_direction = ' DESC ';
+      }
       $params['image_enable_page'] = 0;
       $params['image_title'] = $options_row->image_title_show_hover;
       $params['thumb_height'] = $params['height'];
       $params['thumb_width'] = $params['width'];
       $params['image_column_number'] = $params['count'];
+      $params['popup_fullscreen'] = $options_row->popup_fullscreen;
       $params['popup_width'] = $options_row->popup_width;
       $params['popup_height'] = $options_row->popup_height;
       $params['popup_effect'] = $options_row->popup_type;
@@ -82,7 +90,7 @@ class BWGViewThumbnails {
       echo WDWLibrary::message(__('There is no gallery selected or the gallery was deleted.', 'bwg'), 'error');
       return;
     }
-    $image_rows = $this->model->get_image_rows_data($params['gallery_id'], $params['images_per_page'], $params['sort_by'], $bwg, $type);
+    $image_rows = $this->model->get_image_rows_data($params['gallery_id'], $params['images_per_page'], $params['sort_by'], $bwg, $type, $sort_direction);
     if (!$image_rows) {
       echo WDWLibrary::message(__('There are no images in this gallery.', 'bwg'), 'error');
     }
@@ -191,7 +199,7 @@ class BWGViewThumbnails {
         font-size: <?php echo $theme_row->thumb_title_font_size; ?>px;
         font-weight: <?php echo $theme_row->thumb_title_font_weight; ?>;
         height: inherit;
-        margin: <?php echo $theme_row->thumb_title_margin; ?>;
+        padding: <?php echo $theme_row->thumb_title_margin; ?>;
         text-shadow: <?php echo $theme_row->thumb_title_shadow; ?>;
         vertical-align: middle;
         width: inherit;
@@ -265,7 +273,7 @@ class BWGViewThumbnails {
     <div id="bwg_container1_<?php echo $bwg; ?>">
       <div id="bwg_container2_<?php echo $bwg; ?>">
         <form id="gal_front_form_<?php echo $bwg; ?>" method="post" action="#">
-          <div style="background-color:rgba(0, 0, 0, 0); text-align:center; width:100%;">
+          <div style="background-color:rgba(0, 0, 0, 0); text-align: <?php echo $theme_row->thumb_align; ?>; width:100%;">
             <?php
             if ($params['image_enable_page']  && $params['images_per_page'] && ($theme_row->page_nav_position == 'top')) {
               WDWLibrary::ajax_html_frontend_page_nav($theme_row, $page_nav['total'], $page_nav['limit'], 'gal_front_form_' . $bwg, $params['images_per_page'], $bwg, 'bwg_standart_thumbnails_' . $bwg);
@@ -289,6 +297,7 @@ class BWGViewThumbnails {
                   'theme_id' => $params['theme_id'],
                   'thumb_width' => $params['thumb_width'],
                   'thumb_height' => $params['thumb_height'],
+                  'open_with_fullscreen' => $params['popup_fullscreen'],
                   'image_width' => $params['popup_width'],
                   'image_height' => $params['popup_height'],
                   'image_effect' => $params['popup_effect'],
@@ -321,14 +330,14 @@ class BWGViewThumbnails {
                   $params_array['watermark_width'] = $params['watermark_width'];
                   $params_array['watermark_height'] = $params['watermark_height'];
                 }
-                list($image_thumb_width, $image_thumb_height) = getimagesize(htmlspecialchars_decode(ABSPATH . $WD_BWG_UPLOAD_DIR . $image_row->thumb_url));
+                list($image_thumb_width, $image_thumb_height) = getimagesize(htmlspecialchars_decode(ABSPATH . $WD_BWG_UPLOAD_DIR . $image_row->thumb_url, ENT_COMPAT | ENT_QUOTES));
                 $scale = max($params['thumb_width'] / $image_thumb_width, $params['thumb_height'] / $image_thumb_height);
                 $image_thumb_width *= $scale;
                 $image_thumb_height *= $scale;
                 $thumb_left = ($params['thumb_width'] - $image_thumb_width) / 2;
                 $thumb_top = ($params['thumb_height'] - $image_thumb_height) / 2;
                 ?>
-                <a style="font-size: 0;" href="javascript:spider_createpopup('<?php echo addslashes(add_query_arg($params_array, admin_url('admin-ajax.php'))); ?>', '<?php echo $bwg; ?>', '<?php echo $params['popup_width']; ?>', '<?php echo $params['popup_height']; ?>', 1, 'testpopup', 5);">
+                <a style="font-size: 0;" onclick="spider_createpopup('<?php echo addslashes(add_query_arg($params_array, admin_url('admin-ajax.php'))); ?>', '<?php echo $bwg; ?>', '<?php echo $params['popup_width']; ?>', '<?php echo $params['popup_height']; ?>', 1, 'testpopup', 5); return false;">
                   <span class="bwg_standart_thumb_<?php echo $bwg; ?>">
                     <span class="bwg_standart_thumb_spun1_<?php echo $bwg; ?>">
                       <span class="bwg_standart_thumb_spun2_<?php echo $bwg; ?>">
@@ -374,6 +383,9 @@ class BWGViewThumbnails {
         <div id="spider_popup_overlay_<?php echo $bwg; ?>" class="spider_popup_overlay" onclick="spider_destroypopup(1000)"></div>
       </div>
     </div>
+    <script>
+      var bwg_current_url = '<?php echo add_query_arg($current_url, '', home_url($wp->request)); ?>';
+    </script>
     <?php
     if ($from_shortcode) {
       return;

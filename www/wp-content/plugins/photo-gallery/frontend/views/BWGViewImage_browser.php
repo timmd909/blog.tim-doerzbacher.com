@@ -46,12 +46,18 @@ class BWGViewImage_browser {
     $image_browser_images_conteiner = WDWLibrary::spider_hex2rgb($theme_row->image_browser_full_bg_color);
     $bwg_image_browser_image = WDWLibrary::spider_hex2rgb($theme_row->image_browser_bg_color);
     $image_title = $params['image_browser_title_enable'];
-    $enable_image_description = $params['image_browser_description_enable'];	
+    $enable_image_description = $params['image_browser_description_enable'];
+    $option_row = $this->model->get_option_row_data();
+    $image_right_click = $option_row->image_right_click;
+    if (!isset($params['popup_fullscreen'])) {
+      $params['popup_fullscreen'] = 0;
+    }
     $params_array = array(
       'action' => 'GalleryBox',
       'current_view' => $bwg,
       'gallery_id' => $params['gallery_id'],
       'theme_id' => $params['theme_id'],
+      'open_with_fullscreen' => $params['popup_fullscreen'],
       'image_width' => $params['popup_width'],
       'image_height' => $params['popup_height'],
       'image_effect' => $params['popup_effect'],
@@ -416,7 +422,7 @@ class BWGViewImage_browser {
                         <?php
                       }
                       ?>
-                      <a style="position:relative;" href="javascript:spider_createpopup('<?php echo addslashes(add_query_arg($params_array, admin_url('admin-ajax.php'))); ?>', '<?php echo $bwg; ?>', '<?php echo $params['popup_width']; ?>', '<?php echo $params['popup_height']; ?>', 1, 'testpopup', 5);">
+                      <a style="position:relative;" onclick="spider_createpopup('<?php echo addslashes(add_query_arg($params_array, admin_url('admin-ajax.php'))); ?>', '<?php echo $bwg; ?>', '<?php echo $params['popup_width']; ?>', '<?php echo $params['popup_height']; ?>', 1, 'testpopup', 5); return false;">
                         <img class="bwg_image_browser_img_<?php echo $bwg; ?>" src="<?php echo site_url() . '/' . $WD_BWG_UPLOAD_DIR . $image_row->image_url; ?>" alt="<?php echo $image_row->alt; ?>" />
                       </a>
                     <script>	
@@ -502,6 +508,21 @@ class BWGViewImage_browser {
         <div id="spider_popup_overlay_<?php echo $bwg; ?>" class="spider_popup_overlay" onclick="spider_destroypopup(1000)"></div>
       </div>
     </div>
+    <script>
+      jQuery(window).load(function () {
+        <?php
+        if ($image_right_click) {
+          ?>
+          /* Disable right click.*/
+          jQuery('div[id^="bwg_container"]').bind("contextmenu", function (e) {
+            return false;
+          });
+          <?php
+        }
+        ?>
+      });
+      var bwg_current_url = '<?php echo add_query_arg($current_url, '', home_url($wp->request)); ?>';
+    </script>
     <?php
     if ($from_shortcode) {
       return;

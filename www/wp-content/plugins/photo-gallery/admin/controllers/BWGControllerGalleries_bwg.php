@@ -127,10 +127,10 @@ class BWGControllerGalleries_bwg {
     global $WD_BWG_UPLOAD_DIR;
     global $wpdb;
     $image_data = $wpdb->get_row($wpdb->prepare('SELECT * FROM ' . $wpdb->prefix . 'bwg_image WHERE id="%d"', $id));
-    $filename = ABSPATH . $WD_BWG_UPLOAD_DIR . $image_data->image_url;
-    $thumb_filename = ABSPATH . $WD_BWG_UPLOAD_DIR . $image_data->thumb_url;
-    copy(str_replace('/thumb/', '/.original/', ABSPATH . $WD_BWG_UPLOAD_DIR . $image_data->thumb_url), ABSPATH . $WD_BWG_UPLOAD_DIR . $image_data->image_url);    
-    list($width_orig, $height_orig, $type_orig) = getimagesize(htmlspecialchars_decode($filename));
+    $filename = htmlspecialchars_decode(ABSPATH . $WD_BWG_UPLOAD_DIR . $image_data->image_url, ENT_COMPAT | ENT_QUOTES);
+    $thumb_filename = htmlspecialchars_decode(ABSPATH . $WD_BWG_UPLOAD_DIR . $image_data->thumb_url, ENT_COMPAT | ENT_QUOTES);
+    copy(str_replace('/thumb/', '/.original/', $thumb_filename), $filename);
+    list($width_orig, $height_orig, $type_orig) = getimagesize($filename);
     $percent = $width_orig / $thumb_width;
     $thumb_height = $height_orig / $percent;
     ini_set('memory_limit', '-1');
@@ -307,9 +307,12 @@ class BWGControllerGalleries_bwg {
     );
   }
 
-  function set_text_watermark ($original_filename, $dest_filename, $watermark_text, $watermark_font, $watermark_font_size, $watermark_color, $watermark_transparency, $watermark_position) {
+  function set_text_watermark($original_filename, $dest_filename, $watermark_text, $watermark_font, $watermark_font_size, $watermark_color, $watermark_transparency, $watermark_position) {
+    $original_filename = htmlspecialchars_decode($original_filename, ENT_COMPAT | ENT_QUOTES);
+    $dest_filename = htmlspecialchars_decode($dest_filename, ENT_COMPAT | ENT_QUOTES);
+
     $watermark_transparency = 127 - ($watermark_transparency * 1.27);
-    list($width, $height, $type) = getimagesize(htmlspecialchars_decode($original_filename));
+    list($width, $height, $type) = getimagesize($original_filename);
     $watermark_image = imagecreatetruecolor($width, $height);
 
     $watermark_color = $this->bwg_hex2rgb($watermark_color);
@@ -367,9 +370,13 @@ class BWGControllerGalleries_bwg {
     ini_restore('memory_limit');
   }
 
-  function set_image_watermark ($original_filename, $dest_filename, $watermark_url, $watermark_height, $watermark_width, $watermark_position) {
-    list($width, $height, $type) = getimagesize(htmlspecialchars_decode($original_filename));
-    list($width_watermark, $height_watermark, $type_watermark) = getimagesize(htmlspecialchars_decode($watermark_url));
+  function set_image_watermark($original_filename, $dest_filename, $watermark_url, $watermark_height, $watermark_width, $watermark_position) {
+    $original_filename = htmlspecialchars_decode($original_filename, ENT_COMPAT | ENT_QUOTES);
+    $dest_filename = htmlspecialchars_decode($dest_filename, ENT_COMPAT | ENT_QUOTES);
+    $watermark_url = htmlspecialchars_decode($watermark_url, ENT_COMPAT | ENT_QUOTES);
+
+    list($width, $height, $type) = getimagesize($original_filename);
+    list($width_watermark, $height_watermark, $type_watermark) = getimagesize($watermark_url);
 
     $watermark_width = $width * $watermark_width / 100;
     $watermark_height = $height_watermark * $watermark_width / $width_watermark;
@@ -615,7 +622,7 @@ class BWGControllerGalleries_bwg {
     if ($preview_image == '') {
       if ($id != 0) {
         $random_preview_image = $wpdb->get_var($wpdb->prepare("SELECT random_preview_image FROM " . $wpdb->prefix . "bwg_gallery WHERE id='%d'", $id));
-        if ($random_preview_image == '') {
+        if ($random_preview_image == '' || !file_exists(ABSPATH . $WD_BWG_UPLOAD_DIR . $random_preview_image)) {
           $random_preview_image = $wpdb->get_var($wpdb->prepare("SELECT thumb_url FROM " . $wpdb->prefix . "bwg_image WHERE gallery_id='%d' ORDER BY `order`", $id));
         }
       }

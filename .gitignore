@@ -1,2 +1,6 @@
 www/wp-config.php
+www/wp-content/uploads/
+www/photo-gallery/
+
+.project
 

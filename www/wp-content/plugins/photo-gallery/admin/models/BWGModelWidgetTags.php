@@ -1,6 +1,6 @@
 <?php
 
-class BWGModelAddAlbumsGalleries {
+class BWGModelWidgetTags {
   ////////////////////////////////////////////////////////////////////////////////////////
   // Events                                                                             //
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -19,37 +19,27 @@ class BWGModelAddAlbumsGalleries {
   // Public Methods                                                                     //
   ////////////////////////////////////////////////////////////////////////////////////////
 
-  public function get_rows_data($album_id) {
+  public function get_gallery_rows_data() {
     global $wpdb;
-    $where = ((isset($_POST['search_value']) && (esc_html(stripslashes($_POST['search_value'])) != '')) ? ' AND name LIKE "%' . esc_html(stripslashes($_POST['search_value'])) . '%"' : '');
-    $asc_or_desc = ((isset($_POST['asc_or_desc'])) ? esc_html(stripslashes($_POST['asc_or_desc'])) : 'asc');
-    $order_by = ' ORDER BY ' . ((isset($_POST['order_by']) && esc_html(stripslashes($_POST['order_by'])) != '') ? esc_html(stripslashes($_POST['order_by'])) : 'name') . ' ' . $asc_or_desc;
-    if (isset($_POST['page_number']) && $_POST['page_number']) {
-      $limit = ((int) $_POST['page_number'] - 1) * 20;
-    }
-    else {
-      $limit = 0;
-    }
-    $query = "SELECT id, name, 1 as is_album FROM " . $wpdb->prefix . "bwg_album WHERE published=1 AND id<>" . $album_id . " " . $where . " UNION SELECT id, name, 0 as is_album FROM " . $wpdb->prefix . "bwg_gallery WHERE published=1 " . $where . $order_by . " LIMIT " . $limit . ",20";
+    $query = "SELECT * FROM " . $wpdb->prefix . "bwg_gallery WHERE published=1";
+    $rows = $wpdb->get_results($query);
+    return $rows;
+  }
+
+  public function get_album_rows_data() {
+    global $wpdb;
+    $query = "SELECT * FROM " . $wpdb->prefix . "bwg_album WHERE published=1";
     $rows = $wpdb->get_results($query);
     return $rows;
   }
     
-  public function page_nav($album_id) {
+  public function get_theme_rows_data() {
     global $wpdb;
-    $where = ((isset($_POST['search_value']) && (esc_html(stripslashes($_POST['search_value'])) != '')) ? ' AND name LIKE "%' . esc_html(stripslashes($_POST['search_value'])) . '%"' : '');
-    $query = "SELECT id FROM " . $wpdb->prefix . "bwg_album WHERE published=1 AND id<>" . $album_id . " " . $where . " UNION SELECT id FROM " . $wpdb->prefix . "bwg_gallery WHERE published=1 " . $where;
-    $total = count($wpdb->get_col($query));
-    $page_nav['total'] = $total;
-    if (isset($_POST['page_number']) && $_POST['page_number']) {
-      $limit = ((int) $_POST['page_number'] - 1) * 20;
-    }
-    else {
-      $limit = 0;
-    }
-    $page_nav['limit'] = (int) ($limit / 20 + 1);
-    return $page_nav;
+    $query = "SELECT id, name, default_theme FROM " . $wpdb->prefix . "bwg_theme ORDER BY default_theme DESC";
+    $rows = $wpdb->get_results($query);
+    return $rows;
   }
+
   ////////////////////////////////////////////////////////////////////////////////////////
   // Getters & Setters                                                                  //
   ////////////////////////////////////////////////////////////////////////////////////////
