@@ -33,11 +33,31 @@ class BWGViewEditThumb {
     <div style="display:table; width:100%; height:<?php echo $popup_height; ?>px;">
       <div style="display:table-cell; text-align:center; vertical-align:middle;">
         <img id="image_display" src="" style="max-width:<?php echo $image_width; ?>px; max-height:<?php echo $image_height; ?>px;"/>
+        <iframe id="youtube_display" width="<?php echo $image_width; ?>" height="<?php echo $image_height; ?>" src="" frameborder="0" allowfullscreen></iframe>
+        <iframe id="vimeo_display" src="" width="<?php echo $image_width; ?>" height="<?php echo $image_height; ?>" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
       </div>
     </div>
     <script>
-      var image_url = "<?php echo site_url() . '/' . $WD_BWG_UPLOAD_DIR; ?>" + window.parent.document.getElementById("image_url_<?php echo $image_id; ?>").value;
-      window.document.getElementById("image_display").src = image_url + "?date=<?php echo date('Y-m-y H:i:s'); ?>";
+      var file_type = window.parent.document.getElementById("input_filetype_<?php echo $image_id; ?>").value;
+      is_video = (file_type == 'YOUTUBE' || file_type == 'VIMEO');
+      if (!is_video) {
+        var image_url = "<?php echo site_url() . '/' . $WD_BWG_UPLOAD_DIR; ?>" + window.parent.document.getElementById("image_url_<?php echo $image_id; ?>").value;
+        window.document.getElementById("youtube_display").setAttribute('style', 'display: none;');
+        window.document.getElementById("vimeo_display").setAttribute('style', 'display: none;');
+        window.document.getElementById("image_display").src = image_url + "?date=<?php echo date('Y-m-y H:i:s'); ?>";
+      }
+      else {
+        var video_id = window.parent.document.getElementById("input_filename_<?php echo $image_id; ?>").value;
+        window.document.getElementById("image_display").setAttribute('style', 'display: none;');
+        if (file_type == 'YOUTUBE') {
+          window.document.getElementById("vimeo_display").setAttribute('style', 'display: none;');
+          window.document.getElementById("youtube_display").src = "//www.youtube.com/embed/" + video_id;
+        }
+        else if (file_type == 'VIMEO') {
+          window.document.getElementById("youtube_display").setAttribute('style', 'display: none;');
+          window.document.getElementById("vimeo_display").src = "//player.vimeo.com/video/" + video_id;          
+        }
+      }
     </script>
     <?php
     die();
@@ -138,8 +158,8 @@ class BWGViewEditThumb {
       }
     }
     ini_restore('memory_limit');
+    wp_print_scripts('jquery');
     ?>
-    <script language="javascript" type="text/javascript" src="<?php echo get_option("siteurl"); ?>/wp-includes/js/jquery/jquery.js"></script>
     <script src="<?php echo WD_BWG_URL . '/js/Jcrop-1902/js/jquery.Jcrop.min.js'; ?>" type="text/javascript"></script>
     <link rel="stylesheet" href="<?php echo WD_BWG_URL . '/js/Jcrop-1902/css/jquery.Jcrop.css'; ?>" type="text/css" />
     <style>
@@ -174,7 +194,9 @@ class BWGViewEditThumb {
       .thumb_preview_td {
         background-color: #F5F5F5;
         border-radius: 3px;
-        border: 1px solid #CCCCCC; 
+        border: 1px solid #CCCCCC;
+        font-family: sans-serif;
+        font-size: 12px;
       }
       .thumb_message {
         -moz-box-sizing: border-box;
@@ -213,6 +235,12 @@ class BWGViewEditThumb {
         </div>
         <table style="height: inherit; top: 45px; position: absolute ;width: inherit; margin: 0 auto;">
           <tr>
+            <td class="thumb_preview_td" colspan="2">
+              <input type="checkbox" id="chb" onclick="spider_crop_ratio()" checked="checked">
+              <label for="chb">Keep aspect ratio</label>
+            </td>
+          </tr>
+          <tr>
             <td class="thumb_preview_td" style="vertical-align: middle; width: <?php echo ($popup_width - $thumb_width) - 40; ?>px;">
               <img id="image_view" src="<?php echo site_url() . '/' . $WD_BWG_UPLOAD_DIR . $image_data->image_url; ?>?date=<?php echo date('Y-m-y H:i:s'); ?>" style="max-width:<?php echo $image_width; ?>px; max-height:<?php echo $image_height; ?>px;" />
             </td>
@@ -231,6 +259,18 @@ class BWGViewEditThumb {
       <input id="h" type="hidden" name="h" value="" />
     </form>
     <script language="javascript">
+      function spider_crop_ratio() {
+        if (document.getElementById("chb").checked == false) {
+          spider_crop_fix("", "");
+        }
+        else {
+          spider_crop_fix("<?php echo $options->upload_thumb_width; ?>", "<?php echo $options->upload_thumb_height; ?>");
+        }
+        jQuery('#crop_button').show();
+        jQuery('#thumb_message').hide();
+        jQuery('#croped_message').hide();
+        jQuery('#thumb_image_preview').show();
+      }
       function spider_crop(type, form_id) {
         document.getElementById("edit_type").value = type;
         document.getElementById(form_id).submit();
@@ -239,9 +279,12 @@ class BWGViewEditThumb {
       window.parent.document.getElementById("image_thumb_<?php echo $image_id; ?>").src = image_src + "?date=<?php echo date('Y-m-y H:i:s'); ?>";
       // jQuery('#image_view').Jcrop();
       jQuery(window).load(function() {
+        spider_crop_fix("<?php echo $options->upload_thumb_width; ?>", "<?php echo $options->upload_thumb_height; ?>");
+      });
+      function spider_crop_fix(wi, he) {
         var ratio = parseInt('<?php echo $width_orig; ?>') / jQuery('#image_view').width();
-        var thumb_width = parseInt('<?php echo $options->upload_thumb_width; ?>');
-        var thumb_height = parseInt('<?php echo $options->upload_thumb_height; ?>');
+        var thumb_width = parseInt(wi);
+        var thumb_height = parseInt(he);
         if (<?php echo $w; ?> == 0) {
           jQuery('#image_view').Jcrop({
             onChange: spider_update_thumb,
@@ -261,7 +304,7 @@ class BWGViewEditThumb {
             aspectRatio: thumb_width / thumb_height
           });
         }
-      })
+      }
       function spider_update_coords(c) {
         var ratio = parseInt('<?php echo $width_orig; ?>') / jQuery('#image_view').width();
         jQuery('#x').val(c.x * ratio);
