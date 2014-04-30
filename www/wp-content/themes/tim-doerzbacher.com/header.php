@@ -29,6 +29,16 @@
 <script src="<?php echo get_template_directory_uri(); ?>/js/html5.js" type="text/javascript"></script>
 <![endif]-->
 <?php wp_head(); ?>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-50543405-1', 'tim-doerzbacher.com');
+  ga('send', 'pageview');
+
+</script>
 </head>
 
 <body <?php body_class(); ?>>
@@ -51,16 +61,16 @@
 			<ul class="nav-menu">
 				<li><a href="http://www.tim-doerzbacher.com/links">
 					<img src="http://tim-doerzbacher.com/bundles/timdoerzbacher/img/nav/links.svg" />Links</a>
-				</li>	
+				</li>
 				<li><a href="http://www.tim-doerzbacher.com/resume">
 					<img src="http://tim-doerzbacher.com/bundles/timdoerzbacher/img/nav/resume.svg" />R&eacute;sum&eacute;</a>
-				</li>	
+				</li>
 				<li><a href="/" class="current">
 					<img src="http://tim-doerzbacher.com/bundles/timdoerzbacher/img/nav/blog.svg" />Blog</a>
-				</li>	
+				</li>
 				<li><a href="http://www.tim-doerzbacher.com/home">
 					<img src="http://tim-doerzbacher.com/bundles/timdoerzbacher/img/nav/home.svg" />Home</a>
-				</li>	
+				</li>
 			</ul>
 		</nav><!-- #site-navigation -->
 
