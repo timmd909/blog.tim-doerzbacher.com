@@ -43,7 +43,7 @@ class BWGControllerTags_bwg {
   public function save() {
     $message = $this->save_tag();
     $page = WDWLibrary::get('page');
-    wp_redirect(add_query_arg(array('page' => $page, 'task' => 'display', 'message' => $message), admin_url('admin.php')));
+    WDWLibrary::spider_redirect(add_query_arg(array('page' => $page, 'task' => 'display', 'message' => $message), admin_url('admin.php')));
   } 
   
   public function bwg_get_unique_slug($slug, $id) {
@@ -68,7 +68,7 @@ class BWGControllerTags_bwg {
   }
   
   public function bwg_get_unique_name($name, $id) {
-    global $wpdb;
+    /*global $wpdb;
     if ($id != 0) {
       $query = $wpdb->prepare("SELECT name FROM " . $wpdb->prefix . "terms WHERE name = %s AND term_id != %d", $name, $id);
     }
@@ -83,7 +83,7 @@ class BWGControllerTags_bwg {
         $slug_check = $wpdb->get_var($wpdb->prepare("SELECT name FROM " . $wpdb->prefix . "terms WHERE name = %s", $alt_name));
       } while ($slug_check);
       $name = $alt_name;
-    }
+    }*/
     return $name;
   }
   
@@ -187,7 +187,7 @@ class BWGControllerTags_bwg {
       $message = '';
     }
     $page = WDWLibrary::get('page');
-    wp_redirect(add_query_arg(array('page' => $page, 'task' => 'display', 'message' => $message), admin_url('admin.php')));
+    WDWLibrary::spider_redirect(add_query_arg(array('page' => $page, 'task' => 'display', 'message' => $message), admin_url('admin.php')));
   }
 
   public function delete($id) {
@@ -202,7 +202,7 @@ class BWGControllerTags_bwg {
       $message = 2;
     }
     $page = WDWLibrary::get('page');
-    wp_redirect(add_query_arg(array('page' => $page, 'task' => 'display', 'message' => $message), admin_url('admin.php')));
+    WDWLibrary::spider_redirect(add_query_arg(array('page' => $page, 'task' => 'display', 'message' => $message), admin_url('admin.php')));
   }
   
   public function delete_all() {
@@ -223,7 +223,7 @@ class BWGControllerTags_bwg {
       $message = 6;
     }  
     $page = WDWLibrary::get('page');
-    wp_redirect(add_query_arg(array('page' => $page, 'task' => 'display', 'message' => $message), admin_url('admin.php')));
+    WDWLibrary::spider_redirect(add_query_arg(array('page' => $page, 'task' => 'display', 'message' => $message), admin_url('admin.php')));
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////

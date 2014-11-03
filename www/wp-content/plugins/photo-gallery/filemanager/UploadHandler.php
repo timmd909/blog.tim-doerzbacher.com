@@ -9,6 +9,15 @@
  * Licensed under the MIT license:
  * http://www.opensource.org/licenses/MIT
  */
+ 
+if (function_exists('current_user_can')) {
+  if (!current_user_can('read')) {
+    die('Access Denied');
+  }
+}
+else {
+  die('Access Denied');
+}
 
 $upload_handler = new UploadHandler(array(
     'upload_dir' => $_GET['dir'],
@@ -78,14 +87,20 @@ class UploadHandler {
         // The maximum number of files for the upload directory:
         'max_number_of_files' => null,
         // Image resolution restrictions:
-        'max_width' => null,
-        'max_height' => null,
+        'max_width' => ((isset($_REQUEST['file_namesML']) && esc_html($_REQUEST['file_namesML'])) ? (isset($_REQUEST['importer_img_width']) ? (int) $_REQUEST['importer_img_width'] : 1200) : (isset($_POST['upload_img_width']) ? (int) $_POST['upload_img_width'] : 1200)),
+        'max_height' => ((isset($_REQUEST['file_namesML']) && esc_html($_REQUEST['file_namesML'])) ? (isset($_REQUEST['importer_img_height']) ? (int) $_REQUEST['importer_img_height'] : 1200) : (isset($_POST['upload_img_height']) ? (int) $_POST['upload_img_height'] : 1200)),	
         'min_width' => 1,
         'min_height' => 1,
         // Set the following option to false to enable resumable uploads:
         'discard_aborted_uploads' => true,
         // Set to true to rotate images based on EXIF meta data, if available:
         'orient_image' => false,
+      );
+      if (!$this->options['max_width'] || !$this->options['max_height']) {
+        $this->options['max_width'] = NULL;
+        $this->options['max_height'] = NULL;
+      }
+      $this->options += array(
         'image_versions' => array(
           // Uncomment the following version to restrict the size of
           // uploaded images:
@@ -105,13 +120,13 @@ class UploadHandler {
           ),
           */
           '.original' => array(
-            'max_width' => NULL,
-            'max_height' => NULL,
+            'max_width' => $this->options['max_width'],
+            'max_height' => $this->options['max_height'],
             'jpeg_quality' => 100
           ),
           'thumb' => array(
-            'max_width' => ((isset($_POST['upload_thumb_width']) && (int) $_POST['upload_thumb_width']) ? (int) $_POST['upload_thumb_width'] : 300),
-            'max_height' => ((isset($_POST['upload_thumb_height']) && (int) $_POST['upload_thumb_height']) ? (int) $_POST['upload_thumb_height'] : 300),
+            'max_width' => ((isset($_REQUEST['file_namesML']) && esc_html($_REQUEST['file_namesML'])) ? (isset($_REQUEST['importer_thumb_width']) ? (int) $_REQUEST['importer_thumb_width'] : 300) : ((isset($_POST['upload_thumb_width']) && (int) $_POST['upload_thumb_width']) ? (int) $_POST['upload_thumb_width'] : 300)),
+            'max_height' => ((isset($_REQUEST['file_namesML']) && esc_html($_REQUEST['file_namesML'])) ? (isset($_REQUEST['importer_thumb_height']) ? (int) $_REQUEST['importer_thumb_height'] : 300) : ((isset($_POST['upload_thumb_height']) && (int) $_POST['upload_thumb_height']) ? (int) $_POST['upload_thumb_height'] : 300)),
             'jpeg_quality' => 90
           ),
         )
@@ -277,7 +292,7 @@ class UploadHandler {
 
     protected function create_scaled_image($file_name, $version, $options) {
       $file_path = $this->get_upload_path($file_name);
-      if (!empty($version)) {
+      if (!empty($version) && ($version != 'main')) {
         $version_dir = $this->get_upload_path(null, $version);
         if (!is_dir($version_dir)) {
           mkdir($version_dir, $this->options['mkdir_mode'], true);
@@ -301,7 +316,7 @@ class UploadHandler {
         $max_height / $img_height
       );
       ini_set('memory_limit', '-1');
-      if (($scale >= 1) || (($max_width === NULL) && ($max_height === NULL))) {
+      if (($scale >= 1) || (($max_width == NULL) && ($max_height == NULL))) {
         if ($file_path !== $new_file_path) {
           return copy($file_path, $new_file_path);
         }
@@ -433,14 +448,14 @@ class UploadHandler {
       }
       list($img_width, $img_height) = @getimagesize(htmlspecialchars_decode($uploaded_file, ENT_COMPAT | ENT_QUOTES));
       if (is_int($img_width)) {
-        if ($this->options['max_width'] && $img_width > $this->options['max_width']) {
-          $file->error = $this->get_error_message('max_width');
-          return false;
-        }
-        if ($this->options['max_height'] && $img_height > $this->options['max_height']) {
-          $file->error = $this->get_error_message('max_height');
-          return false;
-        }
+        // if ($this->options['max_width'] && $img_width > $this->options['max_width']) {
+          // $file->error = $this->get_error_message('max_width');
+          // return false;
+        // }
+        // if ($this->options['max_height'] && $img_height > $this->options['max_height']) {
+          // $file->error = $this->get_error_message('max_height');
+          // return false;
+        // }
         if ($this->options['min_width'] && $img_width < $this->options['min_width']) {
           $file->error = $this->get_error_message('min_width');
           return false;
@@ -473,7 +488,7 @@ class UploadHandler {
         $name = $this->upcount_name($name);
       }
       // Keep an existing filename if this is part of a chunked upload:
-      $uploaded_bytes = $this->fix_integer_overflow(intval($content_range[1]));
+      $uploaded_bytes = $this->fix_integer_overflow(intval(isset($content_range[1]) ? $content_range[1] : 0));
       while(is_file($this->get_upload_path($name))) {
         if ($uploaded_bytes === $this->get_file_size(
                 $this->get_upload_path($name))) {
@@ -616,6 +631,12 @@ class UploadHandler {
               $file->type = $type;
               $file->url = $this->get_download_url($file->name);
               list($img_width, $img_height) = @getimagesize(htmlspecialchars_decode($ex_file, ENT_COMPAT | ENT_QUOTES));
+
+              if ($this->options['max_width'] && $this->options['max_height']) {
+                // Zip Upload.
+                $this->create_scaled_image($file->name, 'main', $this->options);
+              }
+
               if (is_int($img_width)) {
                 $this->handle_image_file($ex_file, $file);
               }
@@ -627,6 +648,38 @@ class UploadHandler {
         }
         $this->options['upload_dir'] = $temp_upload_dir;
       }
+    }
+
+    protected function handle_file_import($uploaded_file, $name, $index = null, $content_range = null) {
+      $parent_dir = wp_upload_dir();
+      $parent_dir = $parent_dir['basedir'];
+      $file_type_array = explode('.', $name);
+      $type = strtolower(end($file_type_array));
+      
+      $file = new stdClass();
+      $file->name = $this->get_file_name($name, $type, $index, $content_range);
+      $file->type = $type;
+      $this->handle_form_data($file, $index);
+      $upload_dir = $this->get_upload_path();
+      if (!is_dir($upload_dir)) {
+        mkdir($upload_dir, $this->options['mkdir_mode'], true);
+      }
+      $file_path = $this->get_upload_path($file->name);
+      
+      copy($parent_dir . '/' . $uploaded_file, $file_path);
+      list($img_width, $img_height) = @getimagesize(htmlspecialchars_decode($file_path, ENT_COMPAT | ENT_QUOTES));
+
+      if ($this->options['max_width'] && $this->options['max_height']) {
+        // Media libruary Upload.
+        $this->create_scaled_image($file->name, 'main', $this->options);
+      }
+
+      if (is_int($img_width)) {
+        $this->handle_image_file($file_path, $file);
+      }        
+      $this->set_file_delete_properties($file);
+      
+      return $file;
     }
 
     protected function handle_file_upload($uploaded_file, $name, $size, $type, $error, $index = null, $content_range = null) {
@@ -666,6 +719,10 @@ class UploadHandler {
         }
         $file_size = $this->get_file_size($file_path, $append_file);
         if ($file_size === $file->size) {
+          if ($this->options['max_width'] && $this->options['max_height']) {
+            // Upload.
+            $this->create_scaled_image($file->name, 'main', $this->options);
+          }
           $file->url = $this->get_download_url($file->name);
           list($img_width, $img_height) = @getimagesize(htmlspecialchars_decode($file_path, ENT_COMPAT | ENT_QUOTES));
           if (is_int($img_width)) {
@@ -803,6 +860,20 @@ class UploadHandler {
     }
 
     public function get($print_response = true) {
+      if (isset($_GET['import']) && $_GET['import'] == 'true') {
+        $file_names = explode('**@**', (isset($_REQUEST['file_namesML']) ? stripslashes($_REQUEST['file_namesML']) : ''));
+        foreach ($file_names as $index => $value) {
+          $file_name_array = explode('/', $value);
+          $files[] = $this->handle_file_import(
+            $value,
+            end($file_name_array),
+            0,
+            ""
+          );
+        }
+        header('Location: ' . add_query_arg(array('action' => 'addImages', 'width' => '650', 'height' => '500', 'task' => 'show_file_manager', 'extensions' => 'jpg,jpeg,png,gif', 'callback' => $_REQUEST['callback'], 'dir' => $_REQUEST['redir'], 'TB_iframe' => '1'), admin_url('admin-ajax.php')));
+        exit;
+      }
       if ($print_response && isset($_GET['download'])) {
         return $this->download();
       }
@@ -825,6 +896,7 @@ class UploadHandler {
         return $this->delete($print_response);
       }
       $upload = isset($_FILES[$this->options['param_name']]) ? $_FILES[$this->options['param_name']] : null;
+      $files = array();
       // Parse the Content-Disposition header, if available:
       $file_name = isset($_SERVER['HTTP_CONTENT_DISPOSITION']) ? rawurldecode(preg_replace(
           '/(^[^"]+")|("$)/',
@@ -835,7 +907,6 @@ class UploadHandler {
       // Content-Range: bytes 0-524287/2000000
       $content_range = isset($_SERVER['HTTP_CONTENT_RANGE']) ? preg_split('/[^0-9]+/', $_SERVER['HTTP_CONTENT_RANGE']) : null;
       $size =  $content_range ? $content_range[3] : null;
-      $files = array();
       if ($upload && is_array($upload['tmp_name'])) {
         // param_name is an array identifier like "files[]",
         // $_FILES is a multi-dimensional array:

@@ -115,9 +115,12 @@ function spider_ajax_save(form_id, tr_group) {
   post_data["task"] = "ajax_search";
   post_data["ajax_task"] = ajax_task;
   post_data["image_current_id"] = image_current_id;
+  post_data["image_width"] = jQuery("#image_width").val();
+  post_data["image_height"] = jQuery("#image_height").val();
   var flag = false;
   if (jQuery("#check_all_items").attr('checked') == 'checked') {
     post_data["check_all_items"] = jQuery("#check_all_items").val();
+    post_data["added_tags_select_all"] = jQuery("#added_tags_select_all").val();
     flag = true;
     jQuery('#check_all_items').attr('checked', false);
   }
@@ -132,6 +135,7 @@ function spider_ajax_save(form_id, tr_group) {
       post_data["thumb_url_" + ids_array[i]] = jQuery("#thumb_url_" + ids_array[i]).val();
       post_data["image_description_" + ids_array[i]] = jQuery("#image_description_" + ids_array[i]).val();
       post_data["image_alt_text_" + ids_array[i]] = jQuery("#image_alt_text_" + ids_array[i]).val();
+      post_data["redirect_url_" + ids_array[i]] = jQuery("#redirect_url_" + ids_array[i]).val();
       post_data["input_date_modified_" + ids_array[i]] = jQuery("#input_date_modified_" + ids_array[i]).val();
       post_data["input_size_" + ids_array[i]] = jQuery("#input_size_" + ids_array[i]).val();
       post_data["input_filetype_" + ids_array[i]] = jQuery("#input_filetype_" + ids_array[i]).val();
@@ -187,7 +191,7 @@ function spider_ajax_save(form_id, tr_group) {
         jQuery('#draganddrop').html("<strong><p>Item Succesfully Deleted.</p></strong>");
         jQuery('#draganddrop').show();
       }
-      else if (!flag && ((ajax_task == 'image_publish_all') || (ajax_task == 'image_unpublish_all') || (ajax_task == 'image_delete_all') || (ajax_task == 'image_set_watermark') || (ajax_task == 'image_recover_all'))) {
+      else if (!flag && ((ajax_task == 'image_publish_all') || (ajax_task == 'image_unpublish_all') || (ajax_task == 'image_delete_all') || (ajax_task == 'image_set_watermark') || (ajax_task == 'image_recover_all') || (ajax_task == 'image_resize'))) {
         jQuery('#draganddrop').html("<strong><p>You must select at least one item.</p></strong>");
         jQuery('#draganddrop').show();
       }
@@ -205,6 +209,10 @@ function spider_ajax_save(form_id, tr_group) {
       }
       else if (ajax_task == 'image_set_watermark') {
         jQuery('#draganddrop').html("<strong><p>Watermarks Succesfully Set.</p></strong>");
+        jQuery('#draganddrop').show();
+      }
+      else if (ajax_task == 'image_resize') {
+        jQuery('#draganddrop').html("<strong><p>Images Succesfully Resized.</p></strong>");
         jQuery('#draganddrop').show();
       }
       else if (ajax_task == 'image_recover_all') {
@@ -559,7 +567,37 @@ function spider_get_items(e) {
   window.parent.bwg_add_items(trackIds, titles, types);
 }
 
-function bwg_get_tags(image_id, e) {
+function bwg_check_checkboxes() { 
+  var flag = false;
+  var ids_string = jQuery("#ids_string").val();
+  ids_array = ids_string.split(",");
+  for (var i in ids_array) {
+    if (ids_array.hasOwnProperty(i) && ids_array[i]) {
+      if (jQuery("#check_" + ids_array[i]).attr('checked') == 'checked') {
+        flag = true;
+      }
+	}
+  }
+  if(flag) {
+    if(jQuery(".buttons_div_right").find("a").hasClass( "thickbox" )) {       
+      return true; 
+	}
+	else { 
+	  jQuery(".buttons_div_right").find("a").addClass( "thickbox thickbox-preview" );
+	  jQuery('#draganddrop').hide();
+	  return true;
+	}
+  } 
+  else { 
+	jQuery(".buttons_div_right").find("a").removeClass( "thickbox thickbox-preview" );
+    jQuery('#draganddrop').html("<strong><p>You must select at least one item.</p></strong>");
+    jQuery('#draganddrop').show();
+	return false;
+  }  
+}
+
+
+function bwg_get_tags(image_id, e) { 
   if (e.preventDefault) {
     e.preventDefault();
   }
@@ -581,35 +619,56 @@ function bwg_get_tags(image_id, e) {
 }
 
 function bwg_add_tag(image_id, tagIds, titles) {
-  var tag_ids = document.getElementById('tags_' + image_id).value;
-  tags_array = tag_ids.split(',');
-  var div = document.getElementById('tags_div_' + image_id);
-  var counter = 0;
-  for (i = 0; i < tagIds.length; i++) {
-    if (tags_array.indexOf(tagIds[i]) == -1) {
-      tag_ids = tag_ids + tagIds[i] + ',';
-      var tag_div = document.createElement('div');
-      tag_div.setAttribute('id', image_id + "_tag_" + tagIds[i]);
-      tag_div.setAttribute('class', "tag_div");
-      div.appendChild(tag_div);
-
-      var tag_name_span = document.createElement('span');
-      tag_name_span.setAttribute('class', "tag_name");
-      tag_name_span.innerHTML = titles[i];
-      tag_div.appendChild(tag_name_span);
-
-      var tag_delete_span = document.createElement('span');
-      tag_delete_span.setAttribute('class', "spider_delete_img_small");
-      tag_delete_span.setAttribute('onclick', "bwg_remove_tag('" + tagIds[i] + "', '" + image_id + "')");
-      tag_delete_span.setAttribute('style', "float:right;");
-      tag_div.appendChild(tag_delete_span);
-
-      counter++;
+  if (image_id == '0') {
+    var flag = false;
+    var ids_string = jQuery("#ids_string").val();
+    ids_array = ids_string.split(",");
+    if (jQuery("#check_all_items").attr("checked")) {
+      var added_tags = '';
+      for (i = 0; i < tagIds.length; i++) {
+        added_tags = added_tags + tagIds[i] + ',';
+      }
+      jQuery("#added_tags_select_all").val(added_tags);
     }
   }
-  document.getElementById('tags_' + image_id).value = tag_ids;
-  if (counter) {
-    div.style.display = "block";
+  else {
+    image_id = image_id + ','; 
+    ids_array = image_id.split(",");
+    var flag = true;
+  }
+  for (var i in ids_array) {
+    if (ids_array.hasOwnProperty(i) && ids_array[i]) {
+      if (jQuery("#check_" + ids_array[i]).attr('checked') == 'checked' || flag) {
+        image_id = ids_array[i];
+        var tag_ids = document.getElementById('tags_' + image_id).value;
+        tags_array = tag_ids.split(',');
+        var div = document.getElementById('tags_div_' + image_id);
+        var counter = 0;
+        for (i = 0; i < tagIds.length; i++) {
+          if (tags_array.indexOf(tagIds[i]) == -1) {
+            tag_ids = tag_ids + tagIds[i] + ',';
+            var tag_div = document.createElement('div');
+            tag_div.setAttribute('id', image_id + "_tag_" + tagIds[i]);
+            tag_div.setAttribute('class', "tag_div");
+            div.appendChild(tag_div);
+            var tag_name_span = document.createElement('span');
+            tag_name_span.setAttribute('class', "tag_name");
+            tag_name_span.innerHTML = titles[i];
+            tag_div.appendChild(tag_name_span);
+            var tag_delete_span = document.createElement('span');
+            tag_delete_span.setAttribute('class', "spider_delete_img_small");
+            tag_delete_span.setAttribute('onclick', "bwg_remove_tag('" + tagIds[i] + "', '" + image_id + "')");
+            tag_delete_span.setAttribute('style', "float:right;");
+            tag_div.appendChild(tag_delete_span);
+            counter++;
+          }
+        }
+        document.getElementById('tags_' + image_id).value = tag_ids;
+        if (counter) {
+          div.style.display = "block";
+        }
+      }
+	  }
   }
   tb_remove();
 }
@@ -854,7 +913,7 @@ function bwg_change_theme_type(type) {
 }
 
 function bwg_get_video_host(url) {  
-  if ((/youtu\.be/i).test(url) || (/youtube\.com\/watch/i).test(url)) {
+  if ((/youtu\.be/i).test(url) || (/youtube\.com\/watch/i).test(url) || (/youtube\.com\/.*/i).test(url)) {
     return 'YOUTUBE';
   }
   if ((/vimeo\.com/i).test(url)) {
@@ -865,21 +924,50 @@ function bwg_get_video_host(url) {
 }
 
 function bwg_get_youtube_video_id(url) {
-  pattern = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
-  var matches = url.match(pattern);
-  if (matches && (matches[7]).length == 11) {
-    return matches[7];
-  }   
-  return '';
+  // pattern = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
+  // var matches = url.match(pattern);
+  // if (matches && (matches[7]).length == 11) {
+    // return matches[7];
+  // }   
+  // return '';
+  var video_id;	
+	var url_parts = url.split('v=');
+	if (url_parts.length <= 1) {
+		url_parts = url.split('/v/');
+		if (url_parts.length <= 1) {
+			url_parts = url_parts[url_parts.length - 1].split('/');
+			if (url_parts.length <= 1) {
+				url_parts = url_parts[0].split('?');
+			}
+		}
+		url_parts = url_parts[url_parts.length - 1].split('&');
+		if (url_parts.length <= 1) {
+			url_parts = url_parts[url_parts.length - 1].split('?');
+		}		
+	}
+  else {
+		url_parts = url_parts[url_parts.length - 1].split('&');
+		if (url_parts.length <= 1) {
+			url_parts = url_parts[url_parts.length - 1].split('#');			
+		}		
+	}
+	video_id = url_parts[0].split('?')[0];
+  return video_id ? video_id : false;
 }
 
 function bwg_get_vimeo_video_id(url) {
-  pattern = /\/\/(www\.)?vimeo.com\/(\d+)($|\/)/;
-  var matches = url.match(pattern);
-  if (matches) {
-    return matches[2];
-  }
-  return '';
+  // pattern = /\/\/(www\.)?vimeo.com\/(\d+)($|\/)/;
+  // var matches = url.match(pattern);
+  // if (matches) {
+    // return matches[2];
+  // }
+  // return '';
+  var url_parts
+	var video_id;
+	url_parts = url.split('/');	
+	url_parts = url_parts[url_parts.length - 1].split('?');
+	video_id = url_parts[0];
+	return video_id ? video_id : false;
 }
 
 function bwg_get_video_info(input_id) {
@@ -907,6 +995,7 @@ function bwg_get_video_info(input_id) {
             fileData['filetype'] = 'YOUTUBE';
             fileData['date_modified'] = bwg_convert_date(data.data.uploaded, 'T');
             fileData['resolution'] = '';
+            fileData['redirect_url'] = '';
             filesValid.push(fileData);
             bwg_add_image(filesValid);
             document.getElementById(input_id).value = '';
@@ -932,6 +1021,7 @@ function bwg_get_video_info(input_id) {
             fileData['filetype'] = 'VIMEO';
             fileData['date_modified'] = bwg_convert_date(data[0].upload_date, ' ');
             fileData['resolution'] = '';
+            fileData['redirect_url'] = '';
             filesValid.push(fileData);
             bwg_add_image(filesValid);
             document.getElementById(input_id).value = '';

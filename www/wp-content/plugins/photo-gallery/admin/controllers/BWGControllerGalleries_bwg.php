@@ -58,9 +58,9 @@ class BWGControllerGalleries_bwg {
     $view->edit($id);
   }
 
-  public function save_order_images() {
+  public function save_order_images($gallery_id) {
     global $wpdb;
-    $imageids_col = $wpdb->get_col('SELECT id FROM ' . $wpdb->prefix . 'bwg_image');
+    $imageids_col = $wpdb->get_col($wpdb->prepare('SELECT id FROM ' . $wpdb->prefix . 'bwg_image WHERE `gallery_id`="%d"', $gallery_id));
     if ($imageids_col) {
       foreach ($imageids_col as $imageid) {
         if (isset($_POST['order_input_' . $imageid])) {
@@ -90,7 +90,13 @@ class BWGControllerGalleries_bwg {
       }
     }
     $this->save_image_db();
-    $this->save_order_images();
+    if (isset($_POST['check_all_items'])) {
+      $tag_ids = (isset($_POST['added_tags_select_all']) ? esc_html(stripslashes($_POST['added_tags_select_all'])) : '');
+      if ($tag_ids != '') {
+          $this->save_tags_if_select_all($tag_ids);
+      }
+    }
+    $this->save_order_images($_POST['current_id']);
     if (isset($_POST['ajax_task']) && esc_html($_POST['ajax_task']) != '') {
       $ajax_task = esc_html($_POST['ajax_task']);
       if (method_exists($this, $ajax_task)) {
@@ -99,7 +105,46 @@ class BWGControllerGalleries_bwg {
     }
     $this->edit();
   }
-
+  
+  public function save_tags_if_select_all($tag_ids) {
+    global $wpdb;
+    $gal_id = (isset($_POST['current_id']) ? (int) $_POST['current_id'] : 0);
+    $image_ids = (isset($_POST['ids_string']) ? esc_html(stripslashes($_POST['ids_string'])) : '');
+    $current_page_image_ids = explode(',', $image_ids);
+    $tag_ids_array = explode(',', $tag_ids);
+    $query_image = $wpdb->prepare('SELECT id FROM ' . $wpdb->prefix . 'bwg_image WHERE gallery_id="%d"', $gal_id);
+    $image_id_array = $wpdb->get_results($query_image);
+    foreach ($image_id_array as $image_id) {
+      $flag = FALSE;
+      foreach ($current_page_image_ids as $current_page_image_id) { 
+        if ($current_page_image_id == $image_id->id) {
+          $flag = TRUE;
+        }
+      }
+      if ($flag) {
+        continue;
+      }
+      foreach ($tag_ids_array as $tag_id) {
+        if ($tag_id) {		
+          $exist_tag = $wpdb->get_var($wpdb->prepare('SELECT id FROM ' . $wpdb->prefix . 'bwg_image_tag WHERE tag_id="%d" AND image_id="%d" AND gallery_id="%d"', $tag_id,$image_id->id, $gal_id));
+          if ($exist_tag == NULL) {
+            $save = $wpdb->insert($wpdb->prefix . 'bwg_image_tag', array(
+              'tag_id' => $tag_id,
+              'image_id' => $image_id->id,
+              'gallery_id' => $gal_id,
+              ), array(
+              '%d',
+              '%d',
+              '%d',
+            ));	  	
+            // Increase tag count in term_taxonomy table.
+            $wpdb->query($wpdb->prepare('UPDATE ' . $wpdb->prefix . 'term_taxonomy SET count="%d" WHERE term_id="%d"', $wpdb->get_var($wpdb->prepare('SELECT COUNT(image_id) FROM ' . $wpdb->prefix . 'bwg_image_tag WHERE tag_id="%d"', $tag_id)), $tag_id));
+          }
+        }
+      }
+    }
+  }
+  
   public function recover() {
     global $wpdb;
     $id = ((isset($_POST['image_current_id'])) ? esc_html(stripslashes($_POST['image_current_id'])) : 0);
@@ -226,6 +271,7 @@ class BWGControllerGalleries_bwg {
     global $wpdb;
     $wpdb->query($wpdb->prepare('DELETE FROM ' . $wpdb->prefix . 'bwg_image WHERE id="%d"', $id));
     $wpdb->query($wpdb->prepare('DELETE FROM ' . $wpdb->prefix . 'bwg_image_comment WHERE image_id="%d"', $id));
+    $wpdb->query($wpdb->prepare('DELETE FROM ' . $wpdb->prefix . 'bwg_image_rate WHERE image_id="%d"', $id));
     $tag_ids = $wpdb->get_col($wpdb->prepare('SELECT tag_id FROM ' . $wpdb->prefix . 'bwg_image_tag WHERE image_id="%d"', $id));
     $wpdb->query($wpdb->prepare('DELETE FROM ' . $wpdb->prefix . 'bwg_image_tag WHERE image_id="%d"', $id));
     // Increase tag count in term_taxonomy table.
@@ -244,6 +290,7 @@ class BWGControllerGalleries_bwg {
       if (isset($_POST['check_' . $image_id]) || isset($_POST['check_all_items'])) {
         $wpdb->query($wpdb->prepare('DELETE FROM ' . $wpdb->prefix . 'bwg_image WHERE id="%d"', $image_id));
         $wpdb->query($wpdb->prepare('DELETE FROM ' . $wpdb->prefix . 'bwg_image_comment WHERE image_id="%d"', $image_id));
+        $wpdb->query($wpdb->prepare('DELETE FROM ' . $wpdb->prefix . 'bwg_image_rate WHERE image_id="%d"', $image_id));
         $tag_ids = $wpdb->get_col($wpdb->prepare('SELECT tag_id FROM ' . $wpdb->prefix . 'bwg_image_tag WHERE image_id="%d"', $image_id));
         $wpdb->query($wpdb->prepare('DELETE FROM ' . $wpdb->prefix . 'bwg_image_tag WHERE image_id="%d"', $image_id));
         // Increase tag count in term_taxonomy table.
@@ -255,7 +302,7 @@ class BWGControllerGalleries_bwg {
       }
     }
   }
-  
+
   public function image_set_watermark() {
     global $wpdb;
     global $WD_BWG_UPLOAD_DIR;
@@ -271,22 +318,126 @@ class BWGControllerGalleries_bwg {
         }
         break;
       case 'image':
+        $watermark_path = str_replace(site_url() . '/', ABSPATH, $options->built_in_watermark_url);
         foreach ($images as $image) {
-          if (isset($_POST['check_' . $image->id])) {
-            $this->set_image_watermark (ABSPATH . $WD_BWG_UPLOAD_DIR . $image->image_url, ABSPATH . $WD_BWG_UPLOAD_DIR . $image->image_url, $options->built_in_watermark_url, $options->built_in_watermark_size, $options->built_in_watermark_size, $options->built_in_watermark_position);
+          if (isset($_POST['check_' . $image->id]) || isset($_POST['check_all_items'])) {
+            $this->set_image_watermark(ABSPATH . $WD_BWG_UPLOAD_DIR . $image->image_url, ABSPATH . $WD_BWG_UPLOAD_DIR . $image->image_url, $watermark_path, $options->built_in_watermark_size, $options->built_in_watermark_size, $options->built_in_watermark_position);
           }
         }
         break;
-    }    
+    }
   }
-  
+
+  public function image_resize() {
+    global $wpdb;
+    global $WD_BWG_UPLOAD_DIR;
+    $gallery_id = ((isset($_POST['current_id'])) ? esc_html(stripslashes($_POST['current_id'])) : 0);
+    $image_width = ((isset($_POST['image_width'])) ? esc_html(stripslashes($_POST['image_width'])) : 1600);
+    $image_height = ((isset($_POST['image_height'])) ? esc_html(stripslashes($_POST['image_height'])) : 1200);
+    $images = $wpdb->get_results($wpdb->prepare('SELECT * FROM ' . $wpdb->prefix . 'bwg_image WHERE gallery_id="%d"', $gallery_id));
+    foreach ($images as $image) {
+      if (isset($_POST['check_' . $image->id]) || isset($_POST['check_all_items'])) {
+        $this->bwg_scaled_image(ABSPATH . $WD_BWG_UPLOAD_DIR . $image->image_url, $image_width, $image_height);
+      }
+    }
+  }
+
+  function bwg_scaled_image($file_path, $max_width = 0, $max_height = 0, $crop = FALSE) {
+    $file_path = htmlspecialchars_decode($file_path, ENT_COMPAT | ENT_QUOTES);
+    if (!function_exists('getimagesize')) {
+      error_log('Function not found: getimagesize');
+      return FALSE;
+    }
+    list($img_width, $img_height, $type) = @getimagesize($file_path);
+    if (!$img_width || !$img_height) {
+      return FALSE;
+    }
+    $scale = min(
+      $max_width / $img_width,
+      $max_height / $img_height
+    );
+    ini_set('memory_limit', '-1');
+    if (($scale >= 1) || (($max_width === 0) && ($max_height === 0))) {
+      // if ($file_path !== $new_file_path) {
+        // return copy($file_path, $new_file_path);
+      // }
+      return TRUE;
+    }
+    
+    if (!function_exists('imagecreatetruecolor')) {
+      error_log('Function not found: imagecreatetruecolor');
+      return FALSE;
+    }
+    if (!$crop) {
+      $new_width = $img_width * $scale;
+      $new_height = $img_height * $scale;
+      $dst_x = 0;
+      $dst_y = 0;
+      $new_img = @imagecreatetruecolor($new_width, $new_height);
+    }
+    else {
+      if (($img_width / $img_height) >= ($max_width / $max_height)) {
+        $new_width = $img_width / ($img_height / $max_height);
+        $new_height = $max_height;
+      }
+      else {
+        $new_width = $max_width;
+        $new_height = $img_height / ($img_width / $max_width);
+      }
+      $dst_x = 0 - ($new_width - $max_width) / 2;
+      $dst_y = 0 - ($new_height - $max_height) / 2;
+      $new_img = @imagecreatetruecolor($max_width, $max_height);
+    }
+    switch ($type) {
+      case 2:
+        $src_img = @imagecreatefromjpeg($file_path);
+        $write_image = 'imagejpeg';
+        $image_quality = 90;
+        break;
+      case 1:
+        @imagecolortransparent($new_img, @imagecolorallocate($new_img, 0, 0, 0));
+        $src_img = @imagecreatefromgif($file_path);
+        $write_image = 'imagegif';
+        $image_quality = NULL;
+        break;
+      case 3:
+        @imagecolortransparent($new_img, @imagecolorallocate($new_img, 0, 0, 0));
+        @imagealphablending($new_img, FALSE);
+        @imagesavealpha($new_img, TRUE);
+        $src_img = @imagecreatefrompng($file_path);
+        $write_image = 'imagepng';
+        $image_quality = 9;
+        break;
+      default:
+        $src_img = NULL;
+    }
+    $success = $src_img && @imagecopyresampled(
+      $new_img,
+      $src_img,
+      $dst_x,
+      $dst_y,
+      0,
+      0,
+      $new_width,
+      $new_height,
+      $img_width,
+      $img_height
+    ) && $write_image($new_img, $file_path, $image_quality);
+    // Free up memory (imagedestroy does not delete files):
+    @imagedestroy($src_img);
+    @imagedestroy($new_img);
+    ini_restore('memory_limit');
+    return $success;
+  }
+
   function bwg_hex2rgb($hex) {
     $hex = str_replace("#", "", $hex);
-    if(strlen($hex) == 3) {
+    if (strlen($hex) == 3) {
       $r = hexdec(substr($hex,0,1).substr($hex,0,1));
       $g = hexdec(substr($hex,1,1).substr($hex,1,1));
       $b = hexdec(substr($hex,2,1).substr($hex,2,1));
-    } else {
+    }
+    else {
       $r = hexdec(substr($hex,0,2));
       $g = hexdec(substr($hex,2,2));
       $b = hexdec(substr($hex,4,2));
@@ -294,7 +445,7 @@ class BWGControllerGalleries_bwg {
     $rgb = array($r, $g, $b);
     return $rgb;
   }
-  
+
   function bwg_imagettfbboxdimensions($font_size, $font_angle, $font, $text) {
     $box = @ImageTTFBBox($font_size, $font_angle, $font, $text) or die;
     $max_x = max(array($box[0], $box[2], $box[4], $box[6]));
@@ -469,6 +620,7 @@ class BWGControllerGalleries_bwg {
         $filetype = ((isset($_POST['input_filetype_' . $image_id])) ? esc_html(stripslashes($_POST['input_filetype_' . $image_id])) : '');
         $resolution = ((isset($_POST['input_resolution_' . $image_id])) ? esc_html(stripslashes($_POST['input_resolution_' . $image_id])) : '');
         $order = ((isset($_POST['order_input_' . $image_id])) ? esc_html(stripslashes($_POST['order_input_' . $image_id])) : '');
+        $redirect_url = ((isset($_POST['redirect_url_' . $image_id])) ? esc_html(stripslashes($_POST['redirect_url_' . $image_id])) : '');
         $author = get_current_user_id();
         $tags_ids = ((isset($_POST['tags_' . $image_id])) ? esc_html(stripslashes($_POST['tags_' . $image_id])) : '');
         if (strpos($image_id, 'pr_') !== FALSE) {
@@ -488,6 +640,10 @@ class BWGControllerGalleries_bwg {
             'order' => $order,
             'published' => 1,
             'comment_count' => 0,
+            'avg_rating' => 0,
+            'rate_count' => 0,
+            'hit_count' => 0,
+            'redirect_url' => $redirect_url,
           ), array(
             '%d',
             '%s',
@@ -500,13 +656,14 @@ class BWGControllerGalleries_bwg {
             '%s',
             '%s',
             '%s',
+            '%d',
+            '%d',
+            '%d',
+            '%d',
+            '%d',
+            '%d',
+            '%d',
             '%s',
-            '%s',
-            '%s',
-            '%d',
-            '%d',
-            '%d',
-            '%d',
           ));
           $new_image_id = (int) $wpdb->get_var('SELECT MAX(`id`) FROM ' . $wpdb->prefix . 'bwg_image');
           if (isset($_POST['check_' . $image_id])) {
@@ -531,7 +688,8 @@ class BWGControllerGalleries_bwg {
             'filetype' => $filetype,
             'resolution' => $resolution,
             'author' => $author,
-            'order' => $order), array('id' => $image_id));
+            'order' => $order,
+            'redirect_url' => $redirect_url), array('id' => $image_id));
         }
         $wpdb->query($wpdb->prepare('DELETE FROM ' . $wpdb->prefix . 'bwg_image_tag WHERE image_id="%d" AND gallery_id="%d"', $image_id, $gal_id));
         if ($save !== FALSE) {

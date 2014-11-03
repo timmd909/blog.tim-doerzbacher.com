@@ -270,6 +270,9 @@ class BWGModelThemes_bwg {
           $row->masonry_thumb_hover_effect = 'scale';
           $row->masonry_thumb_hover_effect_value = '1.1';
           $row->masonry_thumb_transition = 0;
+          $row->masonry_description_font_size = 12;
+					$row->masonry_description_color = 'CCCCCC';
+					$row->masonry_description_font_style = 'segoe ui';
 
           $row->slideshow_cont_bg_color = '000000';
           $row->slideshow_close_btn_transparent = 100;
@@ -373,6 +376,46 @@ class BWGModelThemes_bwg {
           $row->image_browser_full_border_color = 'F7F7F7';
           $row->image_browser_full_bg_color = 'F5F5F5';
           $row->image_browser_full_transparent = 90;
+          $row->lightbox_info_pos = 'top';
+          $row->lightbox_info_align = 'right';
+          $row->lightbox_info_bg_color = '000000';
+          $row->lightbox_info_bg_transparent = 70;
+          $row->lightbox_info_border_width = 1;
+          $row->lightbox_info_border_style = 'none';
+          $row->lightbox_info_border_color = '000000';
+          $row->lightbox_info_border_radius = '5px';
+          $row->lightbox_info_padding = '5px';
+          $row->lightbox_info_margin = '15px';
+          $row->lightbox_title_color = 'FFFFFF';
+          $row->lightbox_title_font_style = 'segoe ui';
+          $row->lightbox_title_font_weight = 'bold';
+          $row->lightbox_title_font_size = 18;
+          $row->lightbox_description_color = 'FFFFFF';
+          $row->lightbox_description_font_style = 'segoe ui';
+          $row->lightbox_description_font_weight = 'normal';
+          $row->lightbox_description_font_size = 14;
+          $row->lightbox_rate_pos = 'bottom';
+          $row->lightbox_rate_align = 'right';
+          $row->lightbox_rate_icon = 'star';
+          $row->lightbox_rate_color = 'F9D062';
+          $row->lightbox_rate_size = 20;
+          $row->lightbox_rate_stars_count = 5;
+          $row->lightbox_rate_padding = '15px';
+          $row->lightbox_rate_hover_color = 'F7B50E';
+          $row->lightbox_hit_pos = 'bottom';
+          $row->lightbox_hit_align = 'left';
+          $row->lightbox_hit_bg_color = '000000';
+          $row->lightbox_hit_bg_transparent = 70;
+          $row->lightbox_hit_border_width = 1;
+          $row->lightbox_hit_border_style = 'none';
+          $row->lightbox_hit_border_color = '000000';
+          $row->lightbox_hit_border_radius = '5px';
+          $row->lightbox_hit_padding = '5px';
+          $row->lightbox_hit_margin = '0 5px';
+          $row->lightbox_hit_color = 'FFFFFF';
+          $row->lightbox_hit_font_style = 'segoe ui';
+          $row->lightbox_hit_font_weight = 'normal';
+          $row->lightbox_hit_font_size = 14;
         }
       }
     }
