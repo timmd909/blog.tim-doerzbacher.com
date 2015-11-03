@@ -1,6 +1,8 @@
-www/wp-config.php
-www/wp-content/uploads/
-www/photo-gallery/
+/www/wp-config.php
+/www/wp-content/uploads/
+/www/photo-gallery/
+
+/www/.htaccess
 
 .project
 
