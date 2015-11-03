@@ -1,0 +1,49 @@
+.dl-horizontal dd:before,
+.dl-horizontal dd:after {
+  content: " ";
+  display: table;
+}
+.dl-horizontal dd:after {
+  clear: both;
+}
+main section {
+  padding: 3em 0;
+}
+main hr {
+  display: block;
+  height: 1px;
+  margin: 0 10em;
+  border-bottom: 1px solid #eeeeee;
+}
+.section_header {
+  margin: 0;
+}
+.section_description {
+  margin-bottom: 2em;
+}
+@media (min-width: 992px) {
+  .section_description {
+    margin-top: 0;
+  }
+}
+@media (max-width: 992px) {
+  .section_description {
+    margin-top: 2em;
+  }
+}
+.section_title {
+  margin-top: 6pt;
+  padding-left: 44pt;
+}
+.section_icon {
+  float: left !important;
+  width: 36pt;
+  height: 36pt;
+}
+.section_more-info {
+  text-align: center;
+}
+.hello-animation {
+  width: 100%;
+  max-width: 300px;
+}
