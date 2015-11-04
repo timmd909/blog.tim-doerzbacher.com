@@ -49,8 +49,8 @@
 						<li>
 							<a href="http://www.tim-doerzbacher.com/home">home</a>
 						</li>
-						<li>
-							<a class="active" href="<?php echo esc_url( home_url( '/' ) ); ?>">blog</a>
+						<li class="active" >
+							<a href="<?php echo esc_url( home_url( '/' ) ); ?>">blog</a>
 						</li>
 						<li>
 							<a href="http://www.tim-doerzbacher.com/resume">resume</a>
