@@ -39,8 +39,8 @@
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 					</button>
-					<a class="navbar-brand" href="/~tim/tim-doerzbacher.com/www.tim-doerzbacher.com/web/app_dev.php/">
-						<img alt="tim-doerzbacher.com" src="/~tim/tim-doerzbacher.com/www.tim-doerzbacher.com/web/img/icons/my-logo.svg">
+					<a class="navbar-brand" href="http://www.tim-doerzbacher.com/">
+						<img alt="tim-doerzbacher.com" src="http://www.tim-doerzbacher.com/img/icons/my-logo.svg">
 					</a>
 				</div>
 
@@ -50,7 +50,7 @@
 							<a href="http://www.tim-doerzbacher.com/home">home</a>
 						</li>
 						<li>
-							<a class="active" href="<?php echo get_page_uri('home'); ?>">blog</a>
+							<a class="active" href="<?php echo esc_url( home_url( '/' ) ); ?>">blog</a>
 						</li>
 						<li>
 							<a href="http://www.tim-doerzbacher.com/resume">resume</a>
