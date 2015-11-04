@@ -359,7 +359,7 @@ function twentytwelve_comment( $comment, $args, $depth ) {
 }
 endif;
 
-if ( ! function_exists( 'twentytwelve_entry_meta' ) ) :
+if ( ! function_exists( 'timmd909_entry_meta' ) ) :
 /**
  * Set up post entry meta.
  *
@@ -371,7 +371,7 @@ if ( ! function_exists( 'twentytwelve_entry_meta' ) ) :
  *
  * @return void
  */
-function twentytwelve_entry_meta() {
+function timmd909_entry_meta() {
 	// Translators: used between list items, there is a space after the comma.
 	$categories_list = get_the_category_list( __( ', ', 'twentytwelve' ) );
 
@@ -393,11 +393,14 @@ function twentytwelve_entry_meta() {
 
 	// Translators: 1 is category, 2 is tag, 3 is the date and 4 is the author's name.
 	if ( $tag_list ) {
-		$utility_text = __( 'This entry was posted in %1$s and tagged %2$s on %3$s<span class="by-author"> by %4$s</span>.', 'twentytwelve' );
+		//$utility_text = __( 'This entry was posted in %1$s and tagged %2$s on %3$s<span class="by-author"> by %4$s</span>.', 'twentytwelve' );
+		$utility_text = __( 'This entry was posted in %1$s and tagged %2$s on %3$s<span class="by-author">.', 'twentytwelve' );
 	} elseif ( $categories_list ) {
-		$utility_text = __( 'This entry was posted in %1$s on %3$s<span class="by-author"> by %4$s</span>.', 'twentytwelve' );
+		//$utility_text = __( 'This entry was posted in %1$s on %3$s<span class="by-author"> by %4$s</span>.', 'twentytwelve' );
+		$utility_text = __( 'This entry was posted in %1$s on %3$s<span class="by-author">.', 'twentytwelve' );
 	} else {
-		$utility_text = __( 'This entry was posted on %3$s<span class="by-author"> by %4$s</span>.', 'twentytwelve' );
+		//$utility_text = __( 'This entry was posted on %3$s<span class="by-author"> by %4$s</span>.', 'twentytwelve' );
+		$utility_text = __( 'This entry was posted on %3$s<span class="by-author">.', 'twentytwelve' );
 	}
 
 	printf(
@@ -508,3 +511,13 @@ function twentytwelve_customize_preview_js() {
 	wp_enqueue_script( 'twentytwelve-customizer', get_template_directory_uri() . '/js/theme-customizer.js', array( 'customize-preview' ), '20130301', true );
 }
 add_action( 'customize_preview_init', 'twentytwelve_customize_preview_js' );
+
+
+
+
+function twentyfifteen_search_form_modify( $html ) {
+	return '<h1>asdf</h1>' . $html;
+//	return str_replace( 'class="search-submit"', 'class="search-submit screen-reader-text"', $html );
+}
+//add_filter( 'get_search_form', 'twentyfifteen_search_form_modify' );
+

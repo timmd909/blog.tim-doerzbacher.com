@@ -9,74 +9,60 @@
  * @since Twenty Twelve 1.0
  */
 ?><!DOCTYPE html>
-<!--[if IE 7]>
-<html class="ie ie7" <?php language_attributes(); ?>>
-<![endif]-->
-<!--[if IE 8]>
-<html class="ie ie8" <?php language_attributes(); ?>>
-<![endif]-->
-<!--[if !(IE 7) | !(IE 8)  ]><!-->
-<html <?php language_attributes(); ?>>
-<!--<![endif]-->
+<html lang="en">
 <head>
-<meta charset="<?php bloginfo( 'charset' ); ?>" />
-<meta name="viewport" content="width=device-width" />
-<title><?php wp_title( '|', true, 'right' ); ?></title>
-<link rel="profile" href="http://gmpg.org/xfn/11" />
-<link rel="pingback" href="<?php bloginfo( 'pingback_url' ); ?>" />
-<?php // Loads HTML5 JavaScript file to add support for HTML5 elements in older IE versions. ?>
-<!--[if lt IE 9]>
-<script src="<?php echo get_template_directory_uri(); ?>/js/html5.js" type="text/javascript"></script>
-<![endif]-->
-<?php wp_head(); ?>
-<script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+	<meta charset="UTF-8" />
 
-  ga('create', 'UA-50543405-1', 'tim-doerzbacher.com');
-  ga('send', 'pageview');
+	<title><?php wp_title( '|', true, 'right' ); ?></title>
+	<meta name="description" content="Personal website for Tim Doerzbacher">
+	<meta name="author" content="Tim Doerzbacher">
 
-</script>
+	<meta name="viewport" content="width=device-width" />
+
+	<link href="<?php echo get_template_directory_uri() ?>/css/bootstrap.css" rel="stylesheet">
+	<link href="<?php echo get_template_directory_uri() ?>/css/font-awesome.css" rel="stylesheet">
+	<link href="<?php echo get_template_directory_uri() ?>/css/style.css" rel="stylesheet">
+	<link href="<?php echo get_template_directory_uri() ?>/css/blog.css" rel="stylesheet">
+	<?php /* wp_head(); */ ?>
 </head>
 
-<body <?php body_class(); ?>>
-<div id="page" class="hfeed site">
-	<header id="masthead" class="site-header" role="banner">
-		<hgroup>
-			<h1 class="site-title">
-				<!-- <a href="<?php echo esc_url( home_url( '/' ) ); ?>" title="<?php echo esc_attr( get_bloginfo( 'name', 'display' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a> -->
-				<a href="http://www.tim-doerzbacher.com">
-					<img src="http://tim-doerzbacher.com/bundles/timdoerzbacher/img/header/logo.png" />
-				</a>
-			</h1>
-			<h2 class="site-description"><?php bloginfo( 'description' ); ?></h2>
-		</hgroup>
+<body>
 
-		<nav id="site-navigation" class="main-navigation" role="navigation">
-			<!-- <h3 class="menu-toggle"><?php _e( 'Menu', 'twentytwelve' ); ?></h3> -->
-			<!-- <a class="assistive-text" href="#content" title="<?php esc_attr_e( 'Skip to content', 'twentytwelve' ); ?>"><?php _e( 'Skip to content', 'twentytwelve' ); ?></a> -->
-			<!-- <?php wp_nav_menu( array( 'theme_location' => 'primary', 'menu_class' => 'nav-menu' ) ); ?> -->
-			<ul class="nav-menu">
-				<li><a href="http://www.tim-doerzbacher.com/links">
-					<img src="http://tim-doerzbacher.com/bundles/timdoerzbacher/img/nav/links.svg" />Links</a>
-				</li>
-				<li><a href="http://www.tim-doerzbacher.com/resume">
-					<img src="http://tim-doerzbacher.com/bundles/timdoerzbacher/img/nav/resume.svg" />R&eacute;sum&eacute;</a>
-				</li>
-				<li><a href="/" class="current">
-					<img src="http://tim-doerzbacher.com/bundles/timdoerzbacher/img/nav/blog.svg" />Blog</a>
-				</li>
-				<li><a href="http://www.tim-doerzbacher.com/home">
-					<img src="http://tim-doerzbacher.com/bundles/timdoerzbacher/img/nav/home.svg" />Home</a>
-				</li>
-			</ul>
-		</nav><!-- #site-navigation -->
+	<header class="header-main">
+		<nav class="navbar navbar-main navbar-fixed-top">
+			<div class="container-fluid">
 
-		<?php if ( get_header_image() ) : ?>
-		<a href="<?php echo esc_url( home_url( '/' ) ); ?>"><img src="<?php header_image(); ?>" class="header-image" width="<?php echo get_custom_header()->width; ?>" height="<?php echo get_custom_header()->height; ?>" alt="" /></a>
-		<?php endif; ?>
-	</header><!-- #masthead -->
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-navigation" aria-expanded="false">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="/~tim/tim-doerzbacher.com/www.tim-doerzbacher.com/web/app_dev.php/">
+						<img alt="tim-doerzbacher.com" src="/~tim/tim-doerzbacher.com/www.tim-doerzbacher.com/web/img/icons/my-logo.svg">
+					</a>
+				</div>
 
-	<div id="main" class="wrapper">
+				<div class="collapse navbar-collapse" id="main-navigation">
+					<ul class="nav navbar-nav">
+						<li>
+							<a href="http://www.tim-doerzbacher.com/home">home</a>
+						</li>
+						<li>
+							<a class="active" href="<?php echo get_page_uri('home'); ?>">blog</a>
+						</li>
+						<li>
+							<a href="http://www.tim-doerzbacher.com/resume">resume</a>
+						</li>
+						<li>
+							<a href="http://www.tim-doerzbacher.com/links">links</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+	</header>
+
+	<main>
+		<div class="container">
