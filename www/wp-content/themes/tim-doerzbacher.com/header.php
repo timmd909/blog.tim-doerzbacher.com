@@ -22,6 +22,7 @@
 	<link href="<?php echo get_template_directory_uri() ?>/css/bootstrap.css" rel="stylesheet">
 	<link href="<?php echo get_template_directory_uri() ?>/css/font-awesome.css" rel="stylesheet">
 	<link href="<?php echo get_template_directory_uri() ?>/css/style.css" rel="stylesheet">
+	<link href="<?php echo get_template_directory_uri() ?>/css/blog.css" rel="stylesheet">
 	<?php /* wp_head(); */ ?>
 </head>
 
