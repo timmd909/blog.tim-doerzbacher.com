@@ -25,11 +25,12 @@ class FilemanagerController {
     
     public function __construct() {
       $upload_dir = wp_upload_dir();
-      $this->uploads_dir = (($this->get_options_data()->images_directory . '/photo-gallery') ? ABSPATH . $this->get_options_data()->images_directory . '/photo-gallery' : WD_BWG_DIR . '/filemanager/uploads');
+      $bwg_options = $this->get_options_data();
+      $this->uploads_dir = (($bwg_options->images_directory . '/photo-gallery') ? ABSPATH . $bwg_options->images_directory . '/photo-gallery' : WD_BWG_DIR . '/filemanager/uploads');
       if (file_exists($this->uploads_dir) == FALSE) {
         mkdir($this->uploads_dir);
       }
-      $this->uploads_url = (($this->get_options_data()->images_directory . '/photo-gallery') ? site_url() . '/' . $this->get_options_data()->images_directory . '/photo-gallery' : WD_BWG_URL . '/filemanager/uploads');
+      $this->uploads_url = (($bwg_options->images_directory . '/photo-gallery') ? site_url() . '/' . $bwg_options->images_directory . '/photo-gallery' : WD_BWG_URL . '/filemanager/uploads');
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////
@@ -43,7 +44,7 @@ class FilemanagerController {
     }
 
     public function execute() {
-      $task = isset($_REQUEST['task']) ? stripslashes($_REQUEST['task']) : 'display';
+      $task = isset($_REQUEST['task']) ? stripslashes(esc_html($_REQUEST['task'])) : 'display';
       if (method_exists($this, $task)) {
         $this->$task();
       }
@@ -70,10 +71,10 @@ class FilemanagerController {
     }
 
     public function make_dir() {
-      $input_dir = (isset($_REQUEST['dir']) ? stripslashes($_REQUEST['dir']) : '');
+      $input_dir = (isset($_REQUEST['dir']) ? stripslashes(esc_html($_REQUEST['dir'])) : '');
       $cur_dir_path = $input_dir == '' ? $this->uploads_dir : $this->uploads_dir . '/' . $input_dir;
 
-      $new_dir_path = $cur_dir_path . '/' . (isset($_REQUEST['new_dir_name']) ? stripslashes($_REQUEST['new_dir_name']) : '');
+      $new_dir_path = $cur_dir_path . '/' . (isset($_REQUEST['new_dir_name']) ? stripslashes(esc_html($_REQUEST['new_dir_name'])) : '');
 
       $msg = '';
       if (file_exists($new_dir_path) == true) {
@@ -82,20 +83,20 @@ class FilemanagerController {
       else {
         mkdir($new_dir_path);
       }
-      header('Location: ' . add_query_arg(array('action' => 'addImages', 'filemanager_msg' => $msg, 'width' => '650', 'height' => '500', 'task' => 'display', 'extensions' => $_REQUEST['extensions'], 'callback' => $_REQUEST['callback'], 'dir' => $_REQUEST['dir'], 'TB_iframe' => '1'), admin_url('admin-ajax.php')));
+      header('Location: ' . add_query_arg(array('action' => 'addImages', 'filemanager_msg' => $msg, 'width' => '650', 'height' => '500', 'task' => 'display', 'extensions' => esc_html($_REQUEST['extensions']), 'callback' => esc_html($_REQUEST['callback']), 'dir' => esc_html($_REQUEST['dir']), 'TB_iframe' => '1'), admin_url('admin-ajax.php')));
       exit;
     }
 
     public function rename_item() {
-      $input_dir = (isset($_REQUEST['dir']) ? stripslashes($_REQUEST['dir']) : '');
+      $input_dir = (isset($_REQUEST['dir']) ? stripslashes(esc_html($_REQUEST['dir'])) : '');
       $cur_dir_path = $input_dir == '' ? $this->uploads_dir : $this->uploads_dir . '/' . $input_dir;
       $cur_dir_path = htmlspecialchars_decode($cur_dir_path, ENT_COMPAT | ENT_QUOTES);
 
-      $file_names = explode('**#**', (isset($_REQUEST['file_names']) ? stripslashes($_REQUEST['file_names']) : ''));
+      $file_names = explode('**#**', (isset($_REQUEST['file_names']) ? stripslashes(esc_html($_REQUEST['file_names'])) : ''));
       $file_name = $file_names[0];
       $file_name = htmlspecialchars_decode($file_name, ENT_COMPAT | ENT_QUOTES);
 
-      $file_new_name = (isset($_REQUEST['file_new_name']) ? stripslashes($_REQUEST['file_new_name']) : '');
+      $file_new_name = (isset($_REQUEST['file_new_name']) ? stripslashes(esc_html($_REQUEST['file_new_name'])) : '');
 
       $file_path = $cur_dir_path . '/' . $file_name;
       $thumb_file_path = $cur_dir_path . '/thumb/' . $file_name;
@@ -122,16 +123,16 @@ class FilemanagerController {
         $msg = "Can't rename the file.";
       }
       $_REQUEST['file_names'] = '';
-      header('Location: ' . add_query_arg(array('action' => 'addImages', 'filemanager_msg' => $msg, 'width' => '650', 'height' => '500', 'task' => 'display', 'extensions' => $_REQUEST['extensions'], 'callback' => $_REQUEST['callback'], 'dir' => $_REQUEST['dir'], 'TB_iframe' => '1'), admin_url('admin-ajax.php')));
+      header('Location: ' . add_query_arg(array('action' => 'addImages', 'filemanager_msg' => $msg, 'width' => '650', 'height' => '500', 'task' => 'display', 'extensions' => esc_html($_REQUEST['extensions']), 'callback' => esc_html($_REQUEST['callback']), 'dir' => esc_html($_REQUEST['dir']), 'TB_iframe' => '1'), admin_url('admin-ajax.php')));
       exit;
     }
 
     public function remove_items() {
-      $input_dir = (isset($_REQUEST['dir']) ? stripslashes($_REQUEST['dir']) : '');
+      $input_dir = (isset($_REQUEST['dir']) ? stripslashes(esc_html($_REQUEST['dir'])) : '');
       $cur_dir_path = $input_dir == '' ? $this->uploads_dir : $this->uploads_dir . '/' . $input_dir;
       $cur_dir_path = htmlspecialchars_decode($cur_dir_path, ENT_COMPAT | ENT_QUOTES);
 
-      $file_names = explode('**#**', (isset($_REQUEST['file_names']) ? stripslashes($_REQUEST['file_names']) : ''));
+      $file_names = explode('**#**', (isset($_REQUEST['file_names']) ? stripslashes(esc_html($_REQUEST['file_names'])) : ''));
 
       $msg = '';
       foreach ($file_names as $file_name) {
@@ -153,7 +154,7 @@ class FilemanagerController {
         }
       }
       $_REQUEST['file_names'] = '';
-      header('Location: ' . add_query_arg(array('action' => 'addImages', 'filemanager_msg' => $msg, 'width' => '650', 'height' => '500', 'task' => 'show_file_manager', 'extensions' => $_REQUEST['extensions'], 'callback' => $_REQUEST['callback'], 'dir' => $_REQUEST['dir'], 'TB_iframe' => '1'), admin_url('admin-ajax.php')));
+      header('Location: ' . add_query_arg(array('action' => 'addImages', 'filemanager_msg' => $msg, 'width' => '650', 'height' => '500', 'task' => 'show_file_manager', 'extensions' => esc_html($_REQUEST['extensions']), 'callback' => esc_html($_REQUEST['callback']), 'dir' => esc_html($_REQUEST['dir']), 'TB_iframe' => '1'), admin_url('admin-ajax.php')));
       exit;
     }
 
@@ -243,7 +244,12 @@ class FilemanagerController {
           }
           break;
       }
-      header('Location: ' . add_query_arg(array('action' => 'addImages', 'filemanager_msg' => $msg, 'width' => '650', 'height' => '500', 'task' => 'show_file_manager', 'extensions' => $_REQUEST['extensions'], 'callback' => $_REQUEST['callback'], 'dir' => $_REQUEST['dir'], 'TB_iframe' => '1'), admin_url('admin-ajax.php')));
+      header('Location: ' . add_query_arg(array('action' => 'addImages', 'filemanager_msg' => $msg, 'width' => '650', 'height' => '500', 'task' => 'show_file_manager', 'extensions' => esc_html($_REQUEST['extensions']), 'callback' => esc_html($_REQUEST['callback']), 'dir' => esc_html($_REQUEST['dir']), 'TB_iframe' => '1'), admin_url('admin-ajax.php')));
+      exit;
+    }
+
+    public function import_items() {
+      header('Location: ' . add_query_arg(array('action' => 'bwg_UploadHandler', 'importer_thumb_width' => esc_html($_REQUEST['importer_thumb_width']), 'importer_thumb_height' => esc_html($_REQUEST['importer_thumb_height']), 'callback' => esc_html($_REQUEST['callback']), 'file_namesML' => esc_html($_REQUEST['file_namesML']), 'importer_img_width' => esc_html($_REQUEST['importer_img_width']), 'importer_img_height' => esc_html($_REQUEST['importer_img_height']), 'import' => 'true', 'redir' => esc_html($_REQUEST['dir']), 'dir' => $this->get_uploads_dir() . '/' . esc_html($_REQUEST['dir']) . '/'), admin_url('admin-ajax.php')));
       exit;
     }
 
