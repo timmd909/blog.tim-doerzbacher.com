@@ -1,7 +1,10 @@
 article {
 	padding: 18pt 0;
 }
-
+	.post_title {
+		margin-top: 0;
+	}
 #secondary {
 	margin-top: 18pt;
 }
+

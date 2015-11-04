@@ -511,3 +511,13 @@ function twentytwelve_customize_preview_js() {
 	wp_enqueue_script( 'twentytwelve-customizer', get_template_directory_uri() . '/js/theme-customizer.js', array( 'customize-preview' ), '20130301', true );
 }
 add_action( 'customize_preview_init', 'twentytwelve_customize_preview_js' );
+
+
+
+
+function twentyfifteen_search_form_modify( $html ) {
+	return '<h1>asdf</h1>' . $html;
+//	return str_replace( 'class="search-submit"', 'class="search-submit screen-reader-text"', $html );
+}
+//add_filter( 'get_search_form', 'twentyfifteen_search_form_modify' );
+
