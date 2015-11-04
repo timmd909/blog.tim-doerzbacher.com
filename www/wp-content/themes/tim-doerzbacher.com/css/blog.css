@@ -8,3 +8,14 @@ article {
 	margin-top: 18pt;
 }
 
+/*
+ * Make sure IFRAMEs don't get too big
+ */
+p > iframe {
+	display: block;
+	margin: 0 auto;
+}
+
+@media (max-width: 969px) { p > iframe { max-width: 600px; max-height: 450px; } }
+@media (max-width: 749px) { p > iframe { max-width: 400px; max-height: 300px; } }
+@media (max-width: 450px) { p > iframe { max-width: 300px; max-height: 200px; } }
