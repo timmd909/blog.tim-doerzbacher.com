@@ -513,11 +513,3 @@ function twentytwelve_customize_preview_js() {
 add_action( 'customize_preview_init', 'twentytwelve_customize_preview_js' );
 
 
-
-
-function twentyfifteen_search_form_modify( $html ) {
-	return '<h1>asdf</h1>' . $html;
-//	return str_replace( 'class="search-submit"', 'class="search-submit screen-reader-text"', $html );
-}
-//add_filter( 'get_search_form', 'twentyfifteen_search_form_modify' );
-
