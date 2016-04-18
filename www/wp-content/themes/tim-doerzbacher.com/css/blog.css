@@ -24,13 +24,15 @@ p > iframe {
   .wp-caption a img {
     width: 100%;
   }
-.alignleft {
-  float: left;
-}
-.alignright {
-  float: right;
-}
 
+@media only screen and (min-width:640px) {
+  .alignleft {
+    float: left;
+  }
+  .alignright {
+    float: right;
+  }
+}
 
 @media (max-width: 969px) { p > iframe { max-width: 600px; max-height: 450px; } }
 @media (max-width: 749px) { p > iframe { max-width: 400px; max-height: 300px; } }
