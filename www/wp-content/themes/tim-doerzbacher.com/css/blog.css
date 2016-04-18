@@ -16,6 +16,24 @@ p > iframe {
 	margin: 0 auto;
 }
 
+.wp-caption {
+  background: #eee;
+  margin: 1em 1.5em;
+  padding: 1em 1.5em;
+}
+  .wp-caption a img {
+    width: 100%;
+  }
+.alignleft {
+  float: left;
+}
+.alignright {
+  float: right;
+}
+
+
 @media (max-width: 969px) { p > iframe { max-width: 600px; max-height: 450px; } }
 @media (max-width: 749px) { p > iframe { max-width: 400px; max-height: 300px; } }
 @media (max-width: 450px) { p > iframe { max-width: 300px; max-height: 200px; } }
+
+
